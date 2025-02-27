@@ -19,39 +19,21 @@ const app = express();
 // Configurar middleware para analizar JSON en las solicitudes
 app.use(express.json());
 
-// Configurar CORS para admitir cualquier origen
-//app.use(cors()); // No permitiría el envío de cookies
+app.use(cors({
+  origin: ['https://infotur-production.up.railway.app', 'http://localhost:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400
+}));
 
-const allowedOrigins = [
-  "http://localhost:3000",  // Para desarrollo local
-  "https://infotur-production.up.railway.app", // Para producción
-];
-
-// Configurar CORS para admitir el origen del frontend en desarrollo
-// app.use(
-//   cors({
-//     //origin: "http://localhost:5173",
-
-//     origin: "http://localhost:8081",
-
-//     credentials: true, // Permitir envío de cookies
-//   })
-// );
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Permitir solicitudes sin origen (por ejemplo, desde Postman)
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("CORS no permitido"));
-    },
-    credentials: true, // Permite envío de cookies y headers autenticados
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  })
-);
+// Middleware adicional para asegurar headers CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 // Configurar rutas de la API Rest
 app.use("/api/ciudades", ciudadRoutes);
